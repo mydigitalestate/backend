@@ -13,6 +13,7 @@
     "packages/*"
   ],
   "scripts": {
+    "start":"cd docker && docker compose up -d",
     "build": "turbo run build",
     "build:studio": "turbo run build --filter=studio",
     "dev": "turbo run dev --parallel",
