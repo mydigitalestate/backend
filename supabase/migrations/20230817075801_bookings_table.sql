@@ -10,3 +10,11 @@ create table
     constraint bookings_id_key unique (id),
     constraint bookings_house_id_fkey foreign key (house_id) references houses (id)
   ) tablespace pg_default;
+
+create trigger send_booking_notification
+after insert on bookings for each row
+execute function send_booking_notification ();
+
+create trigger distribute_income_to_investors
+after insert on bookings for each row
+execute function distribute_income_to_investors_func ();
