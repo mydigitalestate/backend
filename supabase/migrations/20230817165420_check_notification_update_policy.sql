@@ -1,5 +1,5 @@
-CREATE OR REPLACE FUNCTION increase_user_balance()
-RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION check_notification_update_policy(username text, user_names text[])
+RETURNS boolean AS $$
 BEGIN
   RETURN (
     (username = ANY(user_names) OR user_names IS NULL)
