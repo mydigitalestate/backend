@@ -17,6 +17,7 @@ create table
     investors text[] null,
     total_required numeric not null,
     airbnb_link text null,
+    contract_ended boolean null default false,
     constraint houses_pkey primary key (id, name),
     constraint houses_id_key unique (id),
     constraint houses_name_key unique (name),
@@ -52,3 +53,11 @@ update of amount_reached on houses for each row when (
   and old.amount_reached::numeric < new.total_required
 )
 execute function send_investment_completed_notification ();
+
+create trigger apartament_ownership_ended_trigger
+after
+update on houses for each row when (
+  new.contract_ended = true
+  and old.contract_ended = false
+)
+execute function send_apartament_ownership_ended_notification ();

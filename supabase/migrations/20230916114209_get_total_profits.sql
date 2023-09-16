@@ -1,14 +1,11 @@
 CREATE OR REPLACE FUNCTION get_total_profits(
-  h_id integer,
-  username TEXT DEFAULT get_username(auth.uid()),
-  start_date date DEFAULT '1900-02-08'::date,
-  end_date date DEFAULT '2900-02-08'::date
-)
-
-RETURNS TABLE (
-  houseId integer,
-  my_profits NUMERIC,
-  network_profits NUMERIC
+   h_id integer,
+   username TEXT DEFAULT get_username(auth.uid()),
+   start_date date DEFAULT '1900-02-08'::date,
+   end_date date DEFAULT '2900-02-08'::date,
+   OUT houseId integer,
+   OUT my_profits NUMERIC,
+   OUT network_profits NUMERIC
 )
 AS $$
 DECLARE 
@@ -34,6 +31,8 @@ BEGIN
     AND t.destination != username
     AND t.timestamp BETWEEN start_date AND end_date;
 
-  RETURN QUERY SELECT h_id, my_profits_val, network_profits_val;
+  houseId := h_id;
+  my_profits := my_profits_val;
+  network_profits := network_profits_val;
 END;
 $$ LANGUAGE plpgsql;

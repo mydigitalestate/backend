@@ -11,6 +11,7 @@
     OUT new_houses json
 )
 AS $$
+
 DECLARE
     this_week_investments NUMERIC;
     this_week_profit_from_houses NUMERIC;
@@ -138,6 +139,5 @@ DROP TABLE temp_results;
     this_day_profits := this_day_profits;
     new_houses := new_houses;
 END;
-$$ LANGUAGE plpgsql;
 
-SELECT * FROM get_dashboard_page();
+$$ LANGUAGE plpgsql;

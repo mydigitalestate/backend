@@ -50,10 +50,6 @@ create index if not exists idx_invited_by on public.profiles using btree (invite
 
 create index if not exists users_name_idx on public.profiles using btree (username) tablespace pg_default;
 
-create trigger create_new_citizen_notification
-after insert on profiles for each row
-execute function create_new_citizen_notification ();
-
 create trigger delete_referral
 after delete on profiles for each row
 execute function delete_referral_func ();
@@ -71,3 +67,7 @@ execute function notify_rank_change_network ();
 create trigger insert_referral
 after insert on profiles for each row
 execute function insert_referral_func ();
+
+create trigger create_new_citizen_notification
+after insert on profiles for each row
+execute function create_new_citizen_notification ();

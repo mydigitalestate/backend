@@ -13,6 +13,8 @@ RETURNS TABLE (
   personal_invested_amount numeric,
   total_investments int4,
   total_profits json,
+  invested_dates timestamptz[],
+  profited_dates timestamptz[],
   is_locked boolean,
   coordinates json
 )
@@ -30,6 +32,18 @@ BEGIN
     -- COALESCE(get_invested_amount(h.id), 0) as total_investments,
     h.amount_reached as total_investments,
     row_to_json(get_total_profits(h.id, get_username(auth.uid()), start_date_val, end_date_val)) as total_profits,
+    ARRAY(
+      SELECT t.timestamp
+      FROM transactions t
+      WHERE t.source = get_username(auth.uid())
+        AND t.destination = h.id::text
+    ) as invested_dates,
+    ARRAY(
+      SELECT t.timestamp
+      FROM transactions t
+      WHERE t.source = h.id::text 
+        AND t.destination = get_username(auth.uid())
+    ) as profited_dates,
     h.id IN (SELECT id FROM get_locked_investments()) as is_locked,
     h.coords as coordinates
   FROM houses h
@@ -37,5 +51,3 @@ BEGIN
 
 END;
 $$ LANGUAGE plpgsql;
-
-SELECT * FROM get_market('1900-02-08','2900-02-08');

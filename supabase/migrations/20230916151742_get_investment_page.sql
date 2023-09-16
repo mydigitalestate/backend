@@ -1,8 +1,35 @@
-CREATE OR REPLACE FUNCTION get_investment_page(h_id integer, OUT title text,
- OUT pic text[], 
- OUT location text, 
- OUT duration integer, OUT price numeric, OUT description text, OUT my_investment decimal, OUT network_investments decimal, OUT missing_investments decimal, OUT total_required decimal, OUT my_profits decimal, OUT network_profits decimal, OUT top_investors json, OUT similar_houses json, OUT is_ready boolean, OUT is_investor boolean, OUT current_ROI decimal, OUT current_ROI_percentage decimal, OUT bookings decimal, OUT total_days_passed decimal, OUT occupancy_rate decimal, OUT missing_time decimal, OUT investment_details json)
-AS $$
+CREATE
+OR REPLACE FUNCTION get_investment_page(
+  h_id integer,
+  OUT title text,
+  OUT pic text[],
+  OUT location text,
+  OUT duration integer,
+  OUT price numeric,
+  OUT description text,
+  OUT my_investment decimal,
+  OUT network_investments decimal,
+  OUT missing_investments decimal,
+  OUT total_required decimal,
+  OUT my_profits decimal,
+  OUT network_profits decimal,
+  OUT top_investors json,
+  OUT similar_houses json,
+  OUT is_ready boolean,
+  OUT is_investor boolean,
+  OUT current_ROI decimal,
+  OUT current_ROI_percentage numeric,
+  OUT bookings decimal,
+  OUT total_days_passed decimal,
+  OUT occupancy_rate decimal,
+  OUT missing_time decimal,
+  OUT investment_details json,
+  OUT daily_investment_cost decimal,
+  OUT investment_used_now decimal, 
+  OUT total_contract_days decimal
+
+) AS $$
+
 DECLARE
     start_date_val DATE;
     end_date_val DATE;
@@ -11,6 +38,7 @@ BEGIN
     end_date_val := '2900-01-01';
 
     BEGIN
+
         SELECT COALESCE(g.my_profits,0)g INTO my_profits
         FROM get_total_profits(h_id, get_username(auth.uid()), start_date_val, end_date_val)g
         WHERE g.houseId = h_id;
@@ -31,17 +59,41 @@ BEGIN
             FROM get_similar_houses(h_id)
         ) t;
 
-        SELECT COALESCE(g.my_profits, 0) INTO current_ROI
-        FROM get_total_profits(h_id, get_username(auth.uid()), start_date_val, end_date_val) g
-        WHERE g.houseId = h_id;
+SELECT 
+    CASE
+        WHEN h.start_date IS NOT NULL THEN
+            GREATEST(
+                1,
+                CASE
+                    WHEN (h.start_date + (h.duration || ' months')::interval) < current_timestamp THEN
+                        CAST(EXTRACT(EPOCH FROM (h.start_date + (h.duration || ' months')::interval - h.start_date)) / 86400 AS INTEGER)
+                    ELSE
+                        CAST(EXTRACT(EPOCH FROM (current_timestamp - h.start_date)) / 86400 AS INTEGER)
+                END
+            )
+        ELSE 0
+    END
+INTO total_days_passed
+FROM houses h
+WHERE h.id = h_id;
 
-        SELECT COUNT(*) INTO bookings
-        FROM bookings
-        WHERE h_id = h_id;
+SELECT
+    COALESCE(get_total_investments(h.id, get_username(auth.uid()) , start_date_val, end_date_val), 0) / CAST(EXTRACT(EPOCH FROM (h.start_date + (h.duration || ' months')::interval - h.start_date)) / 86400 AS INTEGER) INTO daily_investment_cost
+FROM
+    houses h
+    WHERE h.id = h_id;
 
-        SELECT DATE_PART('day', current_timestamp - h.start_date) INTO total_days_passed
-        FROM houses h
-        WHERE h.id = h_id;
+
+
+investment_used_now = daily_investment_cost * total_days_passed;
+ 
+SELECT 
+  DATE_PART('day', (h.start_date + (h.duration || ' months')::interval)::date - h.start_date) INTO total_contract_days
+FROM
+  houses h
+WHERE 
+  h.id = h_id;
+
 
         SELECT 
             h.name AS title, 
@@ -64,17 +116,34 @@ BEGIN
                 FROM unnest(h.investors) AS investor_name
                 WHERE investor_name = get_username(auth.uid())
             ) AS is_investor,
-            COALESCE(current_ROI, 0),
-            ROUND(COALESCE((COALESCE(get_total_investments(h.id, get_username(auth.uid()), start_date_val, end_date_val), 0) / NULLIF(COALESCE(current_ROI, 1), 0)) * 100, 0), 2) AS current_ROI_percentage,
-            COALESCE(bookings, 0),
+            COALESCE(my_profits, 0) AS current_ROI,
+        COALESCE(
+    ROUND(
+        (((my_profits - COALESCE(investment_used_now, 0)) / NULLIF(investment_used_now, 0)) * 100),
+        2
+    ),
+    0
+) AS current_ROI_percentage,
+
+            COALESCE(get_booked_days(h_id) , 0) AS bookings,
             COALESCE(total_days_passed, 0),
-            ROUND(COALESCE((bookings / total_days_passed) * 100, 0),2) AS occupancy_rate,
+ROUND(
+    CASE
+        WHEN COALESCE(total_contract_days, 0) <> 0
+            THEN COALESCE(get_booked_days(h_id), 0) / COALESCE(total_contract_days, 0) * 100
+        ELSE 0
+    END,
+    2
+) AS occupancy_rate,
             CASE
                 WHEN EXTRACT(DAY FROM (h.start_date + make_interval(months := h.duration)) - (current_timestamp - interval '1 day')) > 0
                 THEN EXTRACT(DAY FROM (h.start_date + make_interval(months := h.duration)) - (current_timestamp - interval '1 day'))
                 ELSE 0
             END AS missing_time,
-            h.investment_details
+            h.investment_details,
+            COALESCE(ROUND(daily_investment_cost,2), 0),
+            COALESCE(ROUND(investment_used_now,2), 0),
+            COALESCE(total_contract_days, 0)
         INTO
             title,
             pic,
@@ -98,7 +167,10 @@ BEGIN
             total_days_passed,
             occupancy_rate,
             missing_time,
-            investment_details
+            investment_details,
+            daily_investment_cost,
+            investment_used_now,
+            total_contract_days
         FROM houses h
         WHERE h.id = h_id;
     END;

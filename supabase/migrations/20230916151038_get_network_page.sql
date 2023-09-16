@@ -1,19 +1,18 @@
-CREATE OR REPLACE FUNCTION get_network_page(
-    OUT total_network decimal,
-    OUT first_line_network decimal,
-    OUT second_line_network decimal,
-    OUT other_line_network decimal,
-    OUT total_investments decimal,
-    OUT first_line_investments decimal,
-    OUT second_line_investments decimal,
-    OUT other_line_investments decimal,
-    OUT my_network json,
-    OUT amount numeric[],
-    OUT limits_left integer,
-    OUT referral_profit_rate integer
-)
-
-AS $$
+CREATE
+OR REPLACE FUNCTION get_network_page (
+  OUT total_network decimal,
+  OUT first_line_network decimal,
+  OUT second_line_network decimal,
+  OUT other_line_network decimal,
+  OUT total_investments decimal,
+  OUT first_line_investments decimal,
+  OUT second_line_investments decimal,
+  OUT other_line_investments decimal,
+  OUT my_network json,
+  OUT amount numeric[],
+  OUT limits_left integer,
+  OUT referral_profit_rate integer
+) AS $$
 DECLARE
     end_date DATE;
     start_date DATE;
@@ -43,17 +42,34 @@ BEGIN
 
         total_network := COALESCE(first_line_network, 0) + COALESCE(second_line_network, 0) + COALESCE(other_line_network, 0);
 
-        SELECT COALESCE(SUM(get_total_investments(get_username(auth.uid()), start_date, end_date)), 0) INTO first_line_investments
-        FROM get_network(get_username(auth.uid()), start_date, end_date) g
-        WHERE g.level = 1;
+          SELECT COALESCE(SUM(get_total_investments(username, start_date, end_date)), 0) INTO first_line_investments
+FROM (
+  SELECT r.username, r.invited_by, ru.level, ru.subscribed_at
+  FROM public.referrals r
+  JOIN get_network(get_username(auth.uid()), start_date, end_date) ru
+  ON r.username = ru.username
+) AS network
+WHERE network.level = 1;
 
-        SELECT COALESCE(SUM(get_total_investments(get_username(auth.uid()), start_date, end_date)), 0) INTO second_line_investments
-        FROM get_network(get_username(auth.uid()), start_date, end_date) g
-        WHERE g.level = 2;
+           SELECT COALESCE(SUM(get_total_investments(username, start_date, end_date)), 0) INTO second_line_investments
+FROM (
+  SELECT r.username, r.invited_by, ru.level, ru.subscribed_at
+  FROM public.referrals r
+  JOIN get_network(get_username(auth.uid()), start_date, end_date) ru
+  ON r.username = ru.username
+) AS network
+WHERE network.level = 2;
+      
 
-        SELECT COALESCE(SUM(get_total_investments(get_username(auth.uid()), start_date, end_date)), 0) INTO other_line_investments
-        FROM get_network(get_username(auth.uid()), start_date, end_date) g
-        WHERE g.level > 2;
+       
+          SELECT COALESCE(SUM(get_total_investments(username, start_date, end_date)), 0) INTO other_line_investments
+FROM (
+  SELECT r.username, r.invited_by, ru.level, ru.subscribed_at
+  FROM public.referrals r
+  JOIN get_network(get_username(auth.uid()), start_date, end_date) ru
+  ON r.username = ru.username
+) AS network
+WHERE network.level > 2;
 
         total_investments := COALESCE(first_line_investments, 0) + COALESCE(second_line_investments, 0) + COALESCE(other_line_investments, 0);
  
