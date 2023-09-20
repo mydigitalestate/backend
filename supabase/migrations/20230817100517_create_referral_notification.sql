@@ -18,9 +18,10 @@ BEGIN
 
       IF referral_amount > 0 THEN 
       INSERT INTO public.notifications (title, message, usernames, value, image, link,color)
-      VALUES ('New Investment In The Network', 
+      VALUES ('New Investment From Network', 
               CONCAT(COALESCE((SELECT INITCAP(display_name) FROM public.profiles WHERE username = NEW.source), INITCAP(NEW.source)), ' invested ', NEW.amount, ' USDT on ', house_name, '!'),
-              ARRAY[inviter_username], referral_amount , public.get_avatar(NEW.source), 'profits/?network=true','success');
+              ARRAY[inviter_username], referral_amount , public.get_avatar(NEW.source),
+                'profits/?network=true','success');
     END IF;
 END IF;
     -- second line inviter
@@ -31,7 +32,7 @@ END IF;
 
       IF referral_amount > 0 THEN 
       INSERT INTO public.notifications (title, message, usernames, value, image, link,color)
-      VALUES ('New Investment In The Network', 
+      VALUES ('New Investment From Network', 
               CONCAT(COALESCE((SELECT INITCAP(display_name) FROM public.profiles WHERE username = NEW.source), INITCAP(NEW.source)), ' invested ', NEW.amount, ' USDT on ', house_name, '!'),
               ARRAY[second_line_inviter_username], referral_amount, public.get_avatar(NEW.source), 'profits/?network=true','success');
     END IF;

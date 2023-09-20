@@ -8,7 +8,7 @@ BEGIN
   WITH RECURSIVE referred_users(username, invited_by, level) AS (
     SELECT username, invited_by, 1
     FROM public.referrals
-    WHERE invited_by = 'tiberius' AND subscribed_at BETWEEN '1900-02-08' AND '2900-02-08'
+    WHERE invited_by = get_username(auth.uid()) AND subscribed_at BETWEEN '1900-02-08' AND '2900-02-08'
     UNION
     SELECT r.username, r.invited_by, ru.level + 1
     FROM referred_users ru
