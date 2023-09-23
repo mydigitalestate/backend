@@ -8,7 +8,7 @@ RETURNS TABLE (
   house_price numeric,
   total_required numeric,
   personal_invested_amount numeric,
-  amount_reached int4
+  amount_reached numeric
   ) AS $$
 BEGIN
     RETURN QUERY

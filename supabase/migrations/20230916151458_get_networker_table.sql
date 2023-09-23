@@ -6,8 +6,8 @@ RETURNS TABLE (
     avatar text,
     ranking text,
     my_network bigint,
-    invested decimal,
-    my_profits decimal,
+    invested bigint,
+    my_profits bigint,
     relation integer,
     subscribed text,
     user_name text
@@ -26,9 +26,9 @@ BEGIN
         get_avatar(p.username) as avatar,
         COALESCE(p.ranking, 'No ranking') AS ranking,
         (COALESCE((SELECT COUNT(*) FROM get_network(n.username, start_date, end_date)), 0)) AS my_network,
-        (COALESCE(SUM(get_total_investments(n.username, start_date, end_date)), 0)) AS invested,
-        (COALESCE((SELECT SUM(profit) FROM get_profits_for_every_house(n.username, start_date, end_date)), 0) +
-        COALESCE((SELECT SUM(profits) FROM get_profits_from_each_user_network(start_date, end_date, n.username)), 0)) AS my_profits,
+        (COALESCE(SUM(get_total_investments(n.username, start_date, end_date))::bigint, 0)) AS invested,
+        (COALESCE((SELECT SUM(profit) FROM get_profits_for_every_house(n.username, start_date, end_date))::bigint, 0) +
+        COALESCE((SELECT SUM(profits) FROM get_profits_from_each_user_network(start_date, end_date, n.username))::bigint, 0)) AS my_profits,
         n.level AS relation,
         TO_CHAR(n.subscribed_at, 'DD/MM/YYYY') AS subscribed,
         p.username AS user_name
@@ -42,5 +42,5 @@ BEGIN
         invested DESC, 
         my_profits DESC, 
         n.level;
-        END;
+END;
 $$ LANGUAGE plpgsql;
