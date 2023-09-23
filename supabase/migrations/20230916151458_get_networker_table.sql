@@ -36,6 +36,11 @@ BEGIN
     LEFT JOIN profiles_view p ON p.username = n.username
     WHERE p.username IS NOT NULL
     GROUP BY p.display_name, p.username, n.username, p.ranking, n.level, n.subscribed_at
-    ORDER BY my_network DESC;
-END;
+  ORDER BY 
+    (SELECT level FROM ranking r WHERE r.name = p.ranking),
+        my_network DESC, 
+        invested DESC, 
+        my_profits DESC, 
+        n.level;
+        END;
 $$ LANGUAGE plpgsql;

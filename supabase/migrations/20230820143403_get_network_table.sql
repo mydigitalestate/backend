@@ -28,6 +28,9 @@ BEGIN
     FROM get_network(get_username(auth.uid()), start_date, end_date) n
     LEFT JOIN profiles_view p ON p.username = n.username
     WHERE p.username IS NOT NULL
-    GROUP BY p.display_name, p.username, n.level, p.ranking, earned, n.subscribed_at;
+    GROUP BY p.display_name, p.username, n.level, p.ranking, earned, n.subscribed_at
+    ORDER BY earned DESC, relation ASC,         
+    (SELECT level FROM ranking r WHERE r.name = p.ranking);
+
 END;
 $$ LANGUAGE plpgsql;

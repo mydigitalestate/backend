@@ -11,10 +11,10 @@ CREATE POLICY "Enable own update access for authenticated users" ON "public"."pr
 AS PERMISSIVE FOR UPDATE
 TO authenticated
 USING ((id = auth.uid()))
-WITH CHECK ((id = auth.uid()));
+WITH CHECK ((auth.uid() IS NOT NULL));
 
 
 CREATE POLICY "select_own_profile" ON "public"."profiles"
 AS PERMISSIVE FOR SELECT
 TO authenticated
-USING ((auth.uid() = id))
+USING ((auth.uid() IS NOT NULL))
