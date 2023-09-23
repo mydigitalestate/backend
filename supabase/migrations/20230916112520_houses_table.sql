@@ -4,7 +4,7 @@ create table
     description text null,
     images text[] null,
     price numeric not null,
-    amount_reached integer not null default 0,
+    amount_reached numeric not null default 0,
     investment_details json not null,
     publishing_date timestamp with time zone not null default now(),
     start_date timestamp with time zone null,
@@ -21,7 +21,7 @@ create table
     constraint houses_pkey primary key (id, name),
     constraint houses_id_key unique (id),
     constraint houses_name_key unique (name),
-    constraint amount_check check (((amount_reached)::numeric <= total_required))
+    constraint amount_check check ((amount_reached <= total_required))
   ) tablespace pg_default;
 
 create index if not exists houses_id_idx on public.houses using btree (id) tablespace pg_default;
@@ -38,21 +38,22 @@ create trigger send_new_apartment_notification
 after insert on houses for each row
 execute function send_new_apartment_notification ();
 
-create trigger investment_almostcomplete_notification
-after
-update on houses for each row when (
-  new.amount_reached::numeric >= (0.9 * new.total_required)
-  and old.amount_reached::numeric < (0.9 * new.total_required)
-)
-execute function send_investment_almostcomplete_notification ();
-
 create trigger send_investment_completed_notification
 after
 update of amount_reached on houses for each row when (
-  new.amount_reached::numeric >= new.total_required
-  and old.amount_reached::numeric < new.total_required
+  new.amount_reached >= new.total_required
+  and old.amount_reached < new.total_required
 )
 execute function send_investment_completed_notification ();
+
+create trigger investment_almostcomplete_notification
+after
+update on houses for each row when (
+  new.amount_reached < new.total_required
+  and new.amount_reached >= (0.9 * new.total_required)
+  and old.amount_reached < (0.9 * new.total_required)
+)
+execute function send_investment_almostcomplete_notification ();
 
 create trigger apartament_ownership_ended_trigger
 after

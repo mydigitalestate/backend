@@ -11,7 +11,7 @@ RETURNS TABLE (
   total_required numeric,
   price numeric,
   personal_invested_amount numeric,
-  total_investments int4,
+  total_investments numeric,
   total_profits json,
   invested_dates timestamptz[],
   profited_dates timestamptz[],
