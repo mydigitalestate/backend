@@ -13,7 +13,7 @@ BEGIN
     IF inviter_username IS NOT NULL THEN
       SELECT first_line_rate INTO referral_amount FROM Ranking WHERE name = (SELECT ranking FROM profiles_view WHERE username = inviter_username);
       referral_amount := (NEW.amount * referral_amount) / 100;
-      IF referral_amount IS NOT NULL THEN
+        IF referral_amount >= 0.01 THEN
         INSERT INTO Transactions (source, destination, amount) 
         VALUES (NEW.source, inviter_username ,referral_amount);
       END IF;
@@ -24,7 +24,7 @@ BEGIN
     IF second_line_inviter_username IS NOT NULL THEN
       SELECT second_line_rate INTO referral_amount FROM Ranking WHERE name = (SELECT ranking FROM Profiles WHERE username = second_line_inviter_username);
       referral_amount := (NEW.amount * referral_amount) / 100;
-      IF referral_amount IS NOT NULL THEN
+        IF referral_amount >= 0.01 THEN
         INSERT INTO Transactions (source, destination, amount) 
         VALUES (NEW.source, second_line_inviter_username , referral_amount);
       END IF;

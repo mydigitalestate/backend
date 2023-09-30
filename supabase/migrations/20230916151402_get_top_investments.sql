@@ -30,6 +30,6 @@ BEGIN
       ) k) as total_profits
   FROM houses h
   WHERE username = ANY(h.investors)
-  ORDER BY (SELECT COALESCE(SUM(my_profits + network_profits), 0) FROM get_total_profits(h.id, username, start_date_val, end_date_val)) DESC NULLS LAST;
+  ORDER BY (SELECT COALESCE(SUM(my_profits), 0) FROM get_total_profits(h.id, username, start_date_val, end_date_val)) DESC NULLS LAST;
 END;
 $$ LANGUAGE plpgsql;
