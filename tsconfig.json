@@ -1,6 +1,13 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "noEmit": true,
+    "allowImportingTsExtensions": true,
+    "target": "esnext",
+    "module": "esnext",
+    "strict": true,
+    "types": ["node"]
   }
 }
+

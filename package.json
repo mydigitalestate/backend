@@ -13,7 +13,7 @@
     "packages/*"
   ],
   "scripts": {
-    "start":"cd docker && docker compose up -d",
+    "start": "cd docker && docker compose up -d",
     "build": "turbo run build",
     "build:studio": "turbo run build --filter=studio",
     "dev": "turbo run dev --parallel",
@@ -66,5 +66,24 @@
     "functions",
     "database",
     "auth"
-  ]
+  ],
+  "bugs": {
+    "url": "https://github.com/supabase/supabase/issues"
+  },
+  "homepage": "https://github.com/supabase/supabase#readme",
+  "main": "babel.config.js",
+  "directories": {
+    "example": "examples"
+  },
+  "dependencies": {
+    "common": "^0.0.0",
+    "config": "^0.0.0",
+    "docs": "^0.0.0",
+    "puppeteer": "^16.2.0",
+    "shared-data": "^0.0.0",
+    "studio": "^0.0.9",
+    "tsconfig": "^0.0.0",
+    "ui": "^0.0.0",
+    "www": "^0.0.3"
+  }
 }
