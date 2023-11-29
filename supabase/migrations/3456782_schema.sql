@@ -2708,7 +2708,6 @@ CREATE TABLE "public"."profiles" (
     "third_line" integer DEFAULT 0 NOT NULL,
     "invited_by" "text",
     "email" "text" DEFAULT ''::"text" NOT NULL,
-    "id" "uuid",
     "invite_limits" numeric DEFAULT '0'::numeric,
     "staff" "text",
     "confirmed_email" character varying,
@@ -2813,9 +2812,6 @@ ALTER TABLE ONLY "public"."notifications"
 ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_email_key" UNIQUE ("email");
 
-ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_id_key" UNIQUE ("id");
-
 ALTER TABLE ONLY "public"."ranking"
     ADD CONSTRAINT "ranking_pkey" PRIMARY KEY ("name");
 
@@ -2834,8 +2830,6 @@ ALTER TABLE ONLY "public"."wallets"
 CREATE INDEX "houses_id_idx" ON "public"."houses" USING "btree" ("id");
 
 CREATE INDEX "idx_invited_by" ON "public"."profiles" USING "btree" ("invited_by");
-
-CREATE INDEX "idx_profiles_id" ON "public"."profiles" USING "btree" ("id");
 
 CREATE INDEX "transactions_destination_idx" ON "public"."transactions" USING "btree" ("destination");
 
@@ -2918,9 +2912,6 @@ ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_confirmed_email_constraint" FOREIGN KEY ("confirmed_email") REFERENCES "auth"."users"("email");
 
 ALTER TABLE ONLY "public"."profiles"
-    ADD CONSTRAINT "profiles_id_fkey" FOREIGN KEY ("id") REFERENCES "auth"."users"("id");
-
-ALTER TABLE ONLY "public"."profiles"
     ADD CONSTRAINT "profiles_invited_by_fkey" FOREIGN KEY ("invited_by") REFERENCES "public"."profiles"("username");
 
 ALTER TABLE ONLY "public"."profiles"
@@ -2936,7 +2927,7 @@ CREATE POLICY "Allow_referral_to_create_transactions" ON "public"."profiles" FOR
    FROM "public"."profiles" "profiles_1"
   WHERE ("profiles_1"."username" = "profiles_1"."invited_by")) = ( SELECT "profiles_1"."username"
    FROM "public"."profiles" "profiles_1"
-  WHERE ("profiles_1"."id" = "auth"."uid"()))));
+  WHERE ("profiles_1"."username" = "public"."get_username"("auth"."uid"())))));
 
 CREATE POLICY "Enable delete for users based on owned_by" ON "public"."wallets" FOR DELETE TO "authenticated" USING (("public"."get_username"("auth"."uid"()) = "owned_by"));
 
